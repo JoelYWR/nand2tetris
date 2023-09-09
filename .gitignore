@@ -1,4 +1,6 @@
 # Files
 .DS_STORE
+**/*.zip
+projects/01/*.out
 
 # Folders
