@@ -2,5 +2,6 @@
 .DS_STORE
 **/*.zip
 projects/01/*.out
+projects/02/*.out
 
 # Folders
