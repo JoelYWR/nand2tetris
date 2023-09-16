@@ -4,5 +4,6 @@
 projects/01/*.out
 projects/02/*.out
 projects/03/**/*.out
+projects/04/**/*.out
 
 # Folders
