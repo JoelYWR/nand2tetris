@@ -1,0 +1,115 @@
+class TicTacToeGame {
+    field TicTacToe ticTacToe;
+    field boolean isInMainMenu, isInTutorial, isInGame;
+
+    constructor TicTacToeGame new() {
+        let ticTacToe = TicTacToe.new();
+        let isInMainMenu = false;
+        let isInTutorial = false;
+        let isInGame = false;
+
+        return this;
+    }
+
+    method void dispose() {
+        do ticTacToe.dispose();
+        do Memory.deAlloc(this);
+
+        return;
+    }
+
+    method void loadMainMenu() {
+        do Screen.clearScreen();
+        do ticTacToe.displayGameBanner();
+        do ticTacToe.displayMenuOptions();
+        let isInMainMenu = true;
+        
+        return;
+    }
+
+    method void loadTutorial() {
+        do Screen.clearScreen();
+        do ticTacToe.displayGameBanner();
+        do ticTacToe.displayTutorial();
+        let isInTutorial = true;
+
+        return;
+    }
+
+    method void loadBoard(int seed) {
+        do Screen.clearScreen();
+        do ticTacToe.setRandomSeed(seed);
+        do ticTacToe.displayGameBanner();
+        do ticTacToe.displayBoard();
+        do ticTacToe.displayMessage("Your turn......");
+        let isInGame = true;
+
+        return;
+    }
+
+    method void run() {
+        var boolean isGameOver, isExit;
+        var char key;
+        var int seedCounter;
+
+        let isGameOver = false;
+        let isExit = false;
+        let seedCounter = 0;
+
+        do loadMainMenu();
+
+        while (~isExit) {
+            while (key = 0) {
+                let key = Keyboard.keyPressed();
+                if (isInMainMenu) {
+                    let seedCounter = seedCounter + 1;
+                }
+            }
+
+            if (isInMainMenu) {
+                if (key = 49) { // Character: 1
+                    let isInMainMenu = false;
+                    do loadBoard(seedCounter);
+                }
+
+                if (key = 50) { // Character: 2
+                    let isInMainMenu = false;
+                    do loadTutorial();
+                }
+
+                if (key = 81) { // Character: q
+                    let isExit = true;
+                }
+            } else {
+                if (isInTutorial) {
+                    if (key = 81) { // Character: q
+                        let isInTutorial = false;
+                        do loadMainMenu();
+                    }
+                } else {
+                    if (isInGame) {
+                        if (key > 48 & key < 58) { // Characters: 1-9
+                            if (~(isGameOver)) {
+                                let isGameOver = ticTacToe.makeMove(key);
+                            }
+                        }
+
+                        if (key = 81) { // Character: q
+                            let isGameOver = false;
+                            let seedCounter = 0;
+                            do ticTacToe.resetBoard();
+                            let isInGame = false;
+                            do loadMainMenu();
+                        }
+                    }
+                }
+            }
+
+            while (~(key = 0)) {
+                let key = Keyboard.keyPressed();
+            }
+        }
+
+        return;
+    }
+}

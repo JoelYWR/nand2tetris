@@ -1,0 +1,295 @@
+class TicTacToe {
+    field Array board;
+    field char emptySymbol, playerSymbol, computerSymbol;
+    field int bannerPositionRow, bannerPositionCol;
+    field int optionsPositionRow, optionsPositionCol;
+    field int tutorialPositionRow, tutorialPositionCol;
+    field int boardPositionRow, boardPositionCol;
+    field int messagePositionRow, messagePositionCol;
+
+    constructor TicTacToe new() {
+        // Positions are chosen to center the components as much as possible.
+        let bannerPositionRow = 4;
+        let bannerPositionCol = 18;
+        let optionsPositionRow = 8;
+        let optionsPositionCol = 18;
+        let tutorialPositionRow = 8;
+        let tutorialPositionCol = 13;
+        let boardPositionRow = 8;
+        let boardPositionCol = 30;
+        let messagePositionRow = 12;
+        let messagePositionCol = 25;
+        let emptySymbol = 45; // '-'
+        let playerSymbol = 88; // 'X'
+        let computerSymbol = 79; // 'O'
+        let board = Array.new(9);
+        do resetBoard();
+
+        return this;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+
+        return;
+    }
+
+    method void setRandomSeed(int seed) {
+        do Random.setSeed(seed);
+
+        return;
+    }
+
+    method void displayGameBanner() {
+        do Output.moveCursor(bannerPositionRow, bannerPositionCol);
+        do Output.printString("****************************");
+        do Output.moveCursor(bannerPositionRow + 1, bannerPositionCol);
+        do Output.printString("*    SIMPLE TIC-TAC-TOE    *");
+        do Output.moveCursor(bannerPositionRow + 2, bannerPositionCol);
+        do Output.printString("****************************");
+
+        return;
+    }
+
+    method void displayMenuOptions() {
+        do Output.moveCursor(optionsPositionRow, optionsPositionCol);
+        do Output.printString("1. Play A Game!");
+        do Output.moveCursor(optionsPositionRow + 1, optionsPositionCol);
+        do Output.printString("2. How To Play?");
+        do Output.moveCursor(optionsPositionRow + 2, optionsPositionCol);
+        do Output.printString("Press Q to exit any screen.");
+
+        return;
+    }
+
+    method void displayTutorial() {
+        do Output.moveCursor(tutorialPositionRow, tutorialPositionCol);
+        do Output.printString("Game is played on a 3 x 3 grid.");
+        do Output.moveCursor(tutorialPositionRow + 1, tutorialPositionCol);
+        do Output.printString("Empty squares are represented by (-).");
+        do Output.moveCursor(tutorialPositionRow + 2, tutorialPositionCol);
+        do Output.printString("You are X, CPU is O.");
+        do Output.moveCursor(tutorialPositionRow + 3, tutorialPositionCol);
+        do Output.printString("You always start first.");
+        do Output.moveCursor(tutorialPositionRow + 4, tutorialPositionCol);
+        do Output.printString("CPU always plays randomly.");
+        do Output.moveCursor(tutorialPositionRow + 5, tutorialPositionCol);
+        do Output.printString("Players take turns to mark empty squares.");
+        do Output.moveCursor(tutorialPositionRow + 6, tutorialPositionCol);
+        do Output.printString("Use number keys (1-9) to mark squares.");
+        do Output.moveCursor(tutorialPositionRow + 7, tutorialPositionCol);
+        do Output.printString("Numbers go from left to right, top to bottom.");
+        do Output.moveCursor(tutorialPositionRow + 8, tutorialPositionCol);
+        do Output.printString("1 = top left square, 9 = bottom right square.");
+        do Output.moveCursor(tutorialPositionRow + 9, tutorialPositionCol);
+        do Output.printString("First player to get 3 marks in a row wins.");
+        do Output.moveCursor(tutorialPositionRow + 10, tutorialPositionCol);
+        do Output.printString("Otherwise, game is a draw.");
+
+        return;
+    }
+
+    method void displayBoard() {
+        do Output.moveCursor(boardPositionRow, boardPositionCol);
+        do Output.printChar(board[0]);
+        do Output.printString(" ");
+        do Output.printChar(board[1]);
+        do Output.printString(" ");
+        do Output.printChar(board[2]);
+        do Output.moveCursor(boardPositionRow + 1, boardPositionCol);
+        do Output.printChar(board[3]);
+        do Output.printString(" ");
+        do Output.printChar(board[4]);
+        do Output.printString(" ");
+        do Output.printChar(board[5]);
+        do Output.moveCursor(boardPositionRow + 2, boardPositionCol);
+        do Output.printChar(board[6]);
+        do Output.printString(" ");
+        do Output.printChar(board[7]);
+        do Output.printString(" ");
+        do Output.printChar(board[8]);
+
+        return;
+    }
+
+    method void displayMessage(string s) {
+        do Output.moveCursor(messagePositionRow, messagePositionCol);
+        do Output.printString(s);
+
+        return;
+    }
+
+    method void resetBoard() {
+        var int i;
+
+        let i = 0;
+        while (i < 9) {
+            let board[i] = emptySymbol;
+            let i = i + 1;
+        }
+
+        return;
+    }
+
+    /*
+    * Processes player's move and drives the current and next turn.
+    * Returns true if game is over, false otherwise.
+    */
+    method boolean makeMove(int key) {
+        var int index;
+        var boolean isValidPlayerMove;
+        var boolean isWinningMove;
+        var boolean hasCPUWon;
+        var boolean isDraw;
+        var boolean isGameOver;
+        
+        let isValidPlayerMove = false;
+        let isWinningMove = false;
+        let hasCPUWon = false;
+        let isDraw = false;
+        let isGameOver = false;
+        let index = key - 49;
+        if (board[index] = 45) {
+            let board[index] = playerSymbol;
+            let isValidPlayerMove = true;
+        }
+        do displayBoard();
+
+        if (isValidPlayerMove) {
+            let isWinningMove = checkWinCondition(index, playerSymbol);
+            if (isWinningMove) {
+                do displayMessage("You win!!!");
+                let isGameOver = true;
+            } else {
+                let isDraw = checkDrawCondition();
+                if (isDraw) {
+                    do displayMessage("Game is a draw!!!");
+                    let isGameOver = true;
+                } else {
+                    do displayMessage("CPU's turn......");
+                    do Sys.wait(500);
+                    let hasCPUWon = makeComputerMove();
+                    if (hasCPUWon) {
+                        do displayMessage("CPU wins!!!");
+                        let isGameOver = true;
+                    } else {
+                        let isDraw = checkDrawCondition();
+                        if (isDraw) {
+                            do displayMessage("Game is a draw!!!");
+                            let isGameOver = true;
+                        } else {
+                            do displayMessage("Your turn......");
+                        }
+                    }
+                }
+            }
+        }
+
+        return isGameOver;
+    }
+
+    /*
+    * Processes CPU's move.
+    * Returns true if CPU has won, false otherwise.
+    */
+    method boolean makeComputerMove() {
+        var int index;
+        var boolean isValidComputerMove;
+        var boolean isWinningMove;
+
+        let isValidComputerMove = false;
+        let isWinningMove = false;
+        while (~(isValidComputerMove)) {
+            let index = Random.randRange(9);
+            if (board[index] = 45) {
+                let board[index] = computerSymbol;
+                let isValidComputerMove = true;
+            }
+        }
+        do displayBoard();
+
+        return checkWinCondition(index, computerSymbol);
+    }
+
+    method boolean checkWinCondition(int index, char symbol) {
+        if (index = 0) {
+            if ((board[1] = symbol & board[2] = symbol) | (board[3] = symbol & board[6] = symbol) | (board[4] = symbol & board[8] = symbol)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if (index = 1) {
+            if ((board[0] = symbol & board[2] = symbol) | (board[4] = symbol & board[7] = symbol)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if (index = 2) {
+            if ((board[0] = symbol & board[1] = symbol) | (board[5] = symbol & board[8] = symbol) | (board[4] = symbol & board[6] = symbol)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if (index = 3) {
+            if ((board[0] = symbol & board[6] = symbol) | (board[4] = symbol & board[5] = symbol)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if (index = 4) {
+            if ((board[0] = symbol & board[8] = symbol) | (board[1] = symbol & board[7] = symbol) | (board[2] = symbol & board[6] = symbol) | (board[3] = symbol & board[5] = symbol)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if (index = 5) {
+            if ((board[2] = symbol & board[8] = symbol) | (board[3] = symbol & board[4] = symbol)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if (index = 6) {
+            if ((board[0] = symbol & board[3] = symbol) | (board[7] = symbol & board[8] = symbol) | (board[2] = symbol & board[4] = symbol)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if (index = 7) {
+            if ((board[1] = symbol & board[4] = symbol) | (board[6] = symbol & board[8] = symbol)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if (index = 8) {
+            if ((board[0] = symbol & board[4] = symbol) | (board[2] = symbol & board[5] = symbol) | (board[6] = symbol & board[7] = symbol)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    method boolean checkDrawCondition() {
+        var int i;
+
+        let i = 0;
+        while (i < 9) {
+            if (board[i] = 45) {
+                return false;
+            }
+            let i = i + 1;
+        }
+
+        return true;
+    }
+}

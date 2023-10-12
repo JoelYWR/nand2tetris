@@ -1,0 +1,269 @@
+function TicTacToeGame.new 0
+push constant 4
+call Memory.alloc 1
+pop pointer 0
+call TicTacToe.new 0
+pop this 0
+push constant 0
+pop this 1
+push constant 0
+pop this 2
+push constant 0
+pop this 3
+push pointer 0
+return
+function TicTacToeGame.dispose 0
+push argument 0
+pop pointer 0
+push this 0
+call TicTacToe.dispose 1
+pop temp 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return
+function TicTacToeGame.loadMainMenu 0
+push argument 0
+pop pointer 0
+call Screen.clearScreen 0
+pop temp 0
+push this 0
+call TicTacToe.displayGameBanner 1
+pop temp 0
+push this 0
+call TicTacToe.displayMenuOptions 1
+pop temp 0
+push constant 0
+not
+pop this 1
+push constant 0
+return
+function TicTacToeGame.loadTutorial 0
+push argument 0
+pop pointer 0
+call Screen.clearScreen 0
+pop temp 0
+push this 0
+call TicTacToe.displayGameBanner 1
+pop temp 0
+push this 0
+call TicTacToe.displayTutorial 1
+pop temp 0
+push constant 0
+not
+pop this 2
+push constant 0
+return
+function TicTacToeGame.loadBoard 0
+push argument 0
+pop pointer 0
+call Screen.clearScreen 0
+pop temp 0
+push this 0
+push argument 1
+call TicTacToe.setRandomSeed 2
+pop temp 0
+push this 0
+call TicTacToe.displayGameBanner 1
+pop temp 0
+push this 0
+call TicTacToe.displayBoard 1
+pop temp 0
+push this 0
+push constant 15
+call String.new 1
+push constant 89
+call String.appendChar 2
+push constant 111
+call String.appendChar 2
+push constant 117
+call String.appendChar 2
+push constant 114
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 116
+call String.appendChar 2
+push constant 117
+call String.appendChar 2
+push constant 114
+call String.appendChar 2
+push constant 110
+call String.appendChar 2
+push constant 46
+call String.appendChar 2
+push constant 46
+call String.appendChar 2
+push constant 46
+call String.appendChar 2
+push constant 46
+call String.appendChar 2
+push constant 46
+call String.appendChar 2
+push constant 46
+call String.appendChar 2
+call TicTacToe.displayMessage 2
+pop temp 0
+push constant 0
+not
+pop this 3
+push constant 0
+return
+function TicTacToeGame.run 4
+push argument 0
+pop pointer 0
+push constant 0
+pop local 0
+push constant 0
+pop local 1
+push constant 0
+pop local 3
+push pointer 0
+call TicTacToeGame.loadMainMenu 1
+pop temp 0
+label WHILE_EXP0
+push local 1
+not
+not
+if-goto WHILE_END0
+label WHILE_EXP1
+push local 2
+push constant 0
+eq
+not
+if-goto WHILE_END1
+call Keyboard.keyPressed 0
+pop local 2
+push this 1
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push local 3
+push constant 1
+add
+pop local 3
+label IF_FALSE0
+goto WHILE_EXP1
+label WHILE_END1
+push this 1
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push local 2
+push constant 49
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push constant 0
+pop this 1
+push pointer 0
+push local 3
+call TicTacToeGame.loadBoard 2
+pop temp 0
+label IF_FALSE2
+push local 2
+push constant 50
+eq
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push constant 0
+pop this 1
+push pointer 0
+call TicTacToeGame.loadTutorial 1
+pop temp 0
+label IF_FALSE3
+push local 2
+push constant 81
+eq
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+push constant 0
+not
+pop local 1
+label IF_FALSE4
+goto IF_END1
+label IF_FALSE1
+push this 2
+if-goto IF_TRUE5
+goto IF_FALSE5
+label IF_TRUE5
+push local 2
+push constant 81
+eq
+if-goto IF_TRUE6
+goto IF_FALSE6
+label IF_TRUE6
+push constant 0
+pop this 2
+push pointer 0
+call TicTacToeGame.loadMainMenu 1
+pop temp 0
+label IF_FALSE6
+goto IF_END5
+label IF_FALSE5
+push this 3
+if-goto IF_TRUE7
+goto IF_FALSE7
+label IF_TRUE7
+push local 2
+push constant 48
+gt
+push local 2
+and
+push constant 58
+lt
+if-goto IF_TRUE8
+goto IF_FALSE8
+label IF_TRUE8
+push local 0
+not
+if-goto IF_TRUE9
+goto IF_FALSE9
+label IF_TRUE9
+push this 0
+push local 2
+call TicTacToe.makeMove 2
+pop local 0
+label IF_FALSE9
+label IF_FALSE8
+push local 2
+push constant 81
+eq
+if-goto IF_TRUE10
+goto IF_FALSE10
+label IF_TRUE10
+push constant 0
+pop local 0
+push constant 0
+pop local 3
+push this 0
+call TicTacToe.resetBoard 1
+pop temp 0
+push constant 0
+pop this 3
+push pointer 0
+call TicTacToeGame.loadMainMenu 1
+pop temp 0
+label IF_FALSE10
+label IF_FALSE7
+label IF_END5
+label IF_END1
+label WHILE_EXP2
+push local 2
+push constant 0
+eq
+not
+not
+if-goto WHILE_END2
+call Keyboard.keyPressed 0
+pop local 2
+goto WHILE_EXP2
+label WHILE_END2
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
