@@ -4,7 +4,7 @@ import re
 
 from collections import deque
 from enum import Enum
-from typing import Tuple
+from typing import Deque, List, Optional, Tuple
 
 XML_OUTPUT = {
     "<": "&lt;",
@@ -128,9 +128,9 @@ class Tokenizer:
     __QUOTE_PATTERN = r'"'
     __QUOTE_REGEX = re.compile(rf"{__QUOTE_PATTERN}")
 
-    __TOKENS_QUEUE = deque()
+    __TOKENS_QUEUE: Deque[Tuple[TokenType, str]] = deque()
 
-    __CURRENT_TOKEN = None
+    __CURRENT_TOKEN: Tuple[Optional[TokenType], str] = (None, "")
 
     def __init__(self, file: str) -> None:
         self.__file = open(file, "r")
@@ -156,7 +156,7 @@ class Tokenizer:
     def __is_token_an_identifier(self, token: str) -> bool:
         return self.__IDENTIFIER_REGEX.fullmatch(token) is not None
 
-    def __check_token_type(self, token: str) -> TokenType:
+    def __check_token_type(self, token: str) -> Optional[TokenType]:
         if self.__is_token_a_keyword(token):
             return TokenType.KEYWORD
         elif self.__is_token_a_symbol(token):
@@ -177,7 +177,7 @@ class Tokenizer:
             raise Exception(f"Tokens queue is not empty.")
 
         is_read_next = True
-        line = None
+        line = ""
         while is_read_next:
             line = self.__file.readline()
             # EOF returns an empty string
@@ -202,7 +202,7 @@ class Tokenizer:
             if "//" in line:
                 line = line.split("//")[0].strip()
 
-        tokens = []
+        tokens: List[str] = []
         if '"' in line:
             # Handle string constants
             # Preserve everything inside each non-overlapping pair of double quotes
@@ -255,9 +255,9 @@ class Tokenizer:
         if self.__TOKENS_QUEUE:
             self.__CURRENT_TOKEN = self.__TOKENS_QUEUE.popleft()
         else:
-            self.__CURRENT_TOKEN = None
+            self.__CURRENT_TOKEN = (None, "")
 
-    def get_current_token(self) -> Tuple[TokenType, str]:
+    def get_current_token(self) -> Tuple[Optional[TokenType], str]:
         return self.__CURRENT_TOKEN
 
     def has_more_tokens(self) -> bool:
@@ -554,7 +554,6 @@ argparser.add_argument(
     choices=[AnalyzerMode.TOKENIZE, AnalyzerMode.PARSE],
     default=AnalyzerMode.PARSE,
     help="action of the %(prog)s. t = tokenize, p = parse. (default: %(default)s)",
-    type=str,
 )
 
 
