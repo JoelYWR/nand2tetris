@@ -1,0 +1,103 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * This library provides two services: direct access to the computer's main
+ * memory (RAM), and allocation and recycling of memory blocks. The Hack RAM
+ * consists of 32,768 words, each holding a 16-bit binary number.
+ */ 
+class Memory {
+    static Array ram;
+    static int heapBaseAddr;
+    static int freeListAddr;
+
+    /** Initializes the class. */
+    function void init() {
+        let ram = 0;
+        let heapBaseAddr = 2048;
+        let ram[heapBaseAddr] = 0;
+        let ram[heapBaseAddr + 1] = 14334;
+
+        return;
+    }
+
+    /** Returns the RAM value at the given address. */
+    function int peek(int address) {
+        return ram[address];
+    }
+
+    /** Sets the RAM value at the given address to the given value. */
+    function void poke(int address, int value) {
+        let ram[address] = value;
+
+        return;
+    }
+
+    /** Finds an available RAM block of the given size and returns
+     *  a reference to its base address. */
+    function int alloc(int size) {
+        var int requiredSegmentSize;
+        var int currentSegmentAddr, currentSegmentBlockSize, currentSegmentNewBlockSize;
+        var int newSegmentAddr;
+
+        if (size < 0) {
+            do Sys.error(5);
+        }
+
+        let requiredSegmentSize = size + 2;
+        let currentSegmentAddr = heapBaseAddr;
+        let currentSegmentBlockSize = ram[currentSegmentAddr + 1];
+
+        while (currentSegmentBlockSize < requiredSegmentSize) {
+            let currentSegmentAddr = ram[currentSegmentAddr];
+            if (currentSegmentAddr = 0) {
+                do Sys.error(6);
+            }
+            let currentSegmentBlockSize = ram[currentSegmentAddr + 1];
+        }
+
+        let currentSegmentNewBlockSize = currentSegmentBlockSize - requiredSegmentSize;
+        let ram[currentSegmentAddr + 1] = currentSegmentNewBlockSize;
+
+        let newSegmentAddr = currentSegmentAddr + 2 + currentSegmentNewBlockSize;
+        let ram[newSegmentAddr] = 0;
+        let ram[newSegmentAddr + 1] = size;
+
+        return newSegmentAddr + 2;
+    }
+
+    /** De-allocates the given object (cast as an array) by making
+     *  it available for future allocations. */
+    function void deAlloc(Array o) {
+        var int segmentAddr, segmentBlockSize;
+        var int previousSegmentAddr;
+        var int nextSegmentAddr;
+
+        let segmentAddr = o - 2;
+        let segmentBlockSize = ram[segmentAddr + 1];
+        let previousSegmentAddr = heapBaseAddr;
+        let nextSegmentAddr = ram[previousSegmentAddr];
+
+        while ((~(nextSegmentAddr = 0)) & (nextSegmentAddr < segmentAddr)) {
+            let previousSegmentAddr = nextSegmentAddr;
+            let nextSegmentAddr = ram[nextSegmentAddr];
+        }
+
+        let ram[previousSegmentAddr] = segmentAddr;
+        let ram[segmentAddr] = nextSegmentAddr;
+
+        if ((segmentAddr + segmentBlockSize + 2) = nextSegmentAddr) {
+            let ram[segmentAddr + 1] = segmentBlockSize + ram[nextSegmentAddr + 1] + 2;
+            let ram[segmentAddr] = ram[nextSegmentAddr];
+        }
+
+        if ((previousSegmentAddr + ram[previousSegmentAddr + 1] + 2) = segmentAddr) {
+            let ram[previousSegmentAddr + 1] = ram[previousSegmentAddr + 1] + segmentBlockSize + 2;
+            let ram[previousSegmentAddr] = ram[segmentAddr];
+        }
+
+        return;
+    }    
+}

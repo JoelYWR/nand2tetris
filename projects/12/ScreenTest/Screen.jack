@@ -1,0 +1,235 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Screen.jack
+
+/**
+ * A library of functions for displaying graphics on the screen.
+ * The Hack physical screen consists of 256 rows (indexed 0..255, top to bottom)
+ * of 512 pixels each (indexed 0..511, left to right). The top left pixel on 
+ * the screen is indexed (0,0).
+ */
+class Screen {
+    static boolean color; // black = true, white = false
+    static Array screen;
+    static int screenMapSize;
+    static Array twoToThePowerOf;
+
+    /** Initializes the Screen. */
+    function void init() {
+        let color = true;
+        let screen = 16384;
+        let screenMapSize = 8192;
+        let twoToThePowerOf = Array.new(16);
+        let twoToThePowerOf[0] = 1;
+        let twoToThePowerOf[1] = 2;
+        let twoToThePowerOf[2] = 4;
+        let twoToThePowerOf[3] = 8;
+        let twoToThePowerOf[4] = 16;
+        let twoToThePowerOf[5] = 32;
+        let twoToThePowerOf[6] = 64;
+        let twoToThePowerOf[7] = 128;
+        let twoToThePowerOf[8] = 256;
+        let twoToThePowerOf[9] = 512;
+        let twoToThePowerOf[10] = 1024;
+        let twoToThePowerOf[11] = 2048;
+        let twoToThePowerOf[12] = 4096;
+        let twoToThePowerOf[13] = 8192;
+        let twoToThePowerOf[14] = 16384;
+        let twoToThePowerOf[15] = 32767+1;
+
+        return;
+    }
+
+    /** Erases the entire screen. */
+    function void clearScreen() {
+        var int i;
+
+        let i = 0;
+        while (i < screenMapSize) {
+            let screen[i] = 0;
+            let i = i + 1;
+        }
+
+        return;
+    }
+
+    /** Sets the current color, to be used for all subsequent drawXXX commands.
+     *  Black is represented by true, white by false. */
+    function void setColor(boolean b) {
+        let color = b;
+
+        return;
+    }
+
+    /** Draws the (x,y) pixel, using the current color. */
+    function void drawPixel(int x, int y) {
+        var int address;
+        var int bit;
+
+        if ((x < 0) | (x > 511) | (y < 0) | (y > 255)) {
+            do Sys.error(7);
+        }
+
+        let address = (32 * y) + (x / 16);
+        let bit = x - (16 * (x / 16));
+
+        if (color) {
+            let screen[address] = screen[address] | twoToThePowerOf[bit];
+        } else {
+            let screen[address] = screen[address] & ~twoToThePowerOf[bit];
+        }
+
+        return;
+    }
+
+    /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. 
+     *  Drawing goes from left to right, except for vertical lines which goes from top to bottom. */
+    function void drawLine(int x1, int y1, int x2, int y2) {
+        if ((x1 < 0) | (x1 > 511) | (y1 < 0) | (y1 > 255) | (x2 < 0) | (x2 > 511) | (y2 < 0) | (y2 > 255)) {
+            do Sys.error(8);
+        }
+
+
+
+        if (y1 = y2) {
+            if (x1 < x2) {
+                do Screen.drawHorizontalLine(x1, x2, y1);
+            } else {
+                do Screen.drawHorizontalLine(x2, x1, y1);
+            }
+
+            return;
+        } 
+
+        if (x1 = x2) {
+            if (y1 < y2) {
+                do Screen.drawVerticalLine(x1, y1, y2);
+            } else {
+                do Screen.drawVerticalLine(x1, y2, y1);
+            }
+
+            return;
+        }
+        
+        if (x1 < x2) {
+            do Screen.drawDiagonalLine(x1, y1, x2, y2);
+        } else {
+            do Screen.drawDiagonalLine(x2, y2, x1, y1);
+        }
+
+        return;
+    }
+
+    /** Draws a filled rectangle whose top left corner is (x1, y1)
+     * and bottom right corner is (x2,y2), using the current color. */
+    function void drawRectangle(int x1, int y1, int x2, int y2) {
+        var int leftX, rightX, curY, endY;
+
+        if ((x1 < 0) | (x1 > 511) | (y1 < 0) | (y1 > 255) | (x2 < 0) | (x2 > 511) | (y2 < 0) | (y2 > 255)) {
+            do Sys.error(9);
+        }
+
+        let leftX = x1;
+        let rightX = x2;
+        let curY = y1;
+        let endY = y2 + 1;
+
+        while (curY < endY) {
+            do Screen.drawHorizontalLine(leftX, rightX, curY);
+            let curY = curY + 1;
+        }
+
+        return;
+    }
+
+    /** Draws a filled circle of radius r<=181 around (x,y), using the current color. */
+    function void drawCircle(int x, int y, int r) {
+        var int curR, endR, lineLength;
+
+        if ((x < 0) | (x > 511) | (y < 0) | (y > 255)) {
+            do Sys.error(12);
+        }
+
+        if ((r < 0) | (r > 181)) {
+            do Sys.error(13);
+        }
+
+        let curR = -r;
+        let endR = r + 1;
+        while (curR < endR) {
+            let lineLength = Math.sqrt((r*r) - (curR*curR));
+            do Screen.drawHorizontalLine(x - lineLength, x + lineLength, y + curR);
+            let curR = curR + 1;
+        }
+
+        return;
+    }
+
+    function void drawHorizontalLine(int leftX, int rightX, int y) {
+        var int curX, endX;
+
+        let curX = leftX;
+        let endX = rightX + 1;
+        while (curX < endX) {
+            do Screen.drawPixel(curX, y);
+            let curX = curX + 1;
+        }
+
+        return;
+    }
+
+    function void drawVerticalLine(int x, int topY, int botY) {
+        var int curY, endY;
+
+        let curY = topY;
+        let endY = botY + 1;
+        while (curY < endY) {
+            do Screen.drawPixel(x, curY);
+            let curY = curY + 1;
+        }
+
+        return;
+    }
+
+    function void drawDiagonalLine(int leftX, int leftY, int rightX, int rightY) {
+        var boolean isSlopePositive;
+        var int a, b, diff;
+        var int dx, dy;
+        var int endX, endY;
+
+        let a = 0;
+        let b = 0;
+        let diff = 0;
+        let dx = rightX - leftX;
+
+        // (0,0) is located at the top left of the screen.
+        if (leftY < rightY) {
+            let isSlopePositive = false;
+            let dy = rightY - leftY;
+        } else {
+            let isSlopePositive = true;
+            let dy = leftY - rightY;
+        }
+
+        let endX = dx + 1;
+        let endY = dy + 1;
+        while ((a < endX) & (b < endY)) {
+            if (isSlopePositive) {
+                do Screen.drawPixel(leftX + a, leftY - b);
+            } else {
+                do Screen.drawPixel(leftX + a, leftY + b);
+            }
+
+            if (diff < 0) {
+                let a = a + 1;
+                let diff = diff + dy;
+            } else {
+                let b = b + 1;
+                let diff = diff - dx;
+            }
+        }
+
+        return;
+    }
+}
